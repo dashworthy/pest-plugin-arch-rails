@@ -2,18 +2,18 @@
 
 use Dashworthy\PestPluginArchRails\Http\GateAbilities;
 use Dashworthy\PestPluginArchRails\Http\GateAuthorizationInspector;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\Review\AuthorizeAfterReturnRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\Review\AuthorizeLineRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\Review\ClosureReturnRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\Review\ConstantRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\Review\EnumValueRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\Review\ForUserRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\Review\GuardFalseRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\Review\NegatedAndRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\Review\OrRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\Review\OrTrueTernaryRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\Review\TernaryRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\Review\UnresolvableRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\AuthorizeAfterReturnRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\AuthorizeLineRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\ClosureReturnRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\ConstantRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\EnumValueRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\ForUserRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\GuardFalseRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\NegatedAndRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\OrRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\OrTrueTernaryRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\TernaryRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\UnresolvableRequest;
 use Pest\Arch\Exceptions\ArchExpectationFailedException;
 
 describe('policy checks', function () {

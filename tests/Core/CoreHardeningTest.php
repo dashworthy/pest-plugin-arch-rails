@@ -2,10 +2,10 @@
 
 use Dashworthy\PestPluginArchRails\Core\LineFinder;
 use Dashworthy\PestPluginArchRails\Core\Rule;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Core\AlsoFails;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Core\DocblockMentionsIt;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Core\NoClassToken;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Support\AlsoFails;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Support\AlwaysFails;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Support\DocblockMentionsIt;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Support\NoClassToken;
 use PHPUnit\Architecture\Elements\ObjectDescription;
 use PHPUnit\Framework\AssertionFailedError;
 

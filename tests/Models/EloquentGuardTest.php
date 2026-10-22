@@ -3,6 +3,8 @@
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent\ConventionalModel;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent\FillableModel;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent\GuardedModel;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent\LegacyTableModel;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent\NotAModel;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent\WideOpenModel;
 use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\AssertionFailedError;
@@ -25,7 +27,7 @@ it('rejects a model that unguards everything', function () {
 });
 
 it('accepts a whole namespace of models once the unguarded one is excluded', function () {
-    expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent')
+    expect([ConventionalModel::class, FillableModel::class, GuardedModel::class, LegacyTableModel::class, NotAModel::class, WideOpenModel::class])
         ->classes()
         ->extending(Model::class)
         ->toGuardMassAssignment()
@@ -33,7 +35,7 @@ it('accepts a whole namespace of models once the unguarded one is excluded', fun
 });
 
 it('rejects the same namespace without the exclusion, proving it is load-bearing', function () {
-    expect(fn () => expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent')
+    expect(fn () => expect([ConventionalModel::class, FillableModel::class, GuardedModel::class, LegacyTableModel::class, NotAModel::class, WideOpenModel::class])
         ->classes()
         ->extending(Model::class)
         ->toGuardMassAssignment()
@@ -42,7 +44,7 @@ it('rejects the same namespace without the exclusion, proving it is load-bearing
 });
 
 it('sweeps a non-model into the selection when the type filter is dropped', function () {
-    expect(fn () => expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent')
+    expect(fn () => expect([ConventionalModel::class, FillableModel::class, GuardedModel::class, LegacyTableModel::class, NotAModel::class, WideOpenModel::class])
         ->classes()
         ->toGuardMassAssignment()
         ->ignoring(WideOpenModel::class)

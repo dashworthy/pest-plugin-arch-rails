@@ -2,19 +2,19 @@
 
 use Dashworthy\PestPluginArchRails\Coverage\CoverageInspector;
 use Dashworthy\PestPluginArchRails\Coverage\CoverageMap;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\App\CaseAction;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\App\DirectoryTestAction;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\App\FinalReadonlyAction;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\App\GrandchildAction;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\App\Nested\NestedCaseAction;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\App\SameNameAction;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\App\UntestedAction;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\Support\HardeningContract;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Coverage\App\CaseAction;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Coverage\App\DirectoryTestAction;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Coverage\App\FinalReadonlyAction;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Coverage\App\GrandchildAction;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Coverage\App\Nested\NestedCaseAction;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Coverage\App\SameNameAction;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Coverage\App\UntestedAction;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Coverage\Support\ExemptContract;
 use PHPUnit\Framework\AssertionFailedError;
 
 function hardeningCoverageFixture(string $directory): string
 {
-    return dirname(__DIR__).'/Fixtures/Hardening/Coverage/'.$directory;
+    return dirname(__DIR__).'/Fixtures/Coverage/'.$directory;
 }
 
 /**
@@ -49,7 +49,7 @@ it('resolves dot-dot segments in a root that does not exist', function () {
 });
 
 it('resolves a relative root against the working directory', function () {
-    $relative = 'tests/Fixtures/Hardening/Coverage/App';
+    $relative = 'tests/Fixtures/Coverage/App';
     $map = CoverageMap::make([$relative => '/tests/Unit']);
 
     expect($map->testCandidatesFor(hardeningCoverageFixture('App').'/CaseAction.php'))
@@ -109,7 +109,7 @@ it('accepts an empty suffix as a test with the same basename', function () {
 
 it('exempts a class through an interface implemented by its parent', function () {
     expect(GrandchildAction::class)
-        ->toHaveTests(hardeningCoverageRoots(), 'Test', null, [HardeningContract::class])
+        ->toHaveTests(hardeningCoverageRoots(), 'Test', null, [ExemptContract::class])
         ->ensureLazyExpectationIsVerified();
 
     expect(true)->toBeTrue();

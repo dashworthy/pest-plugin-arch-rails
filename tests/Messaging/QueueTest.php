@@ -37,14 +37,14 @@ it('rejects a queued class asserted as synchronous', function () {
 });
 
 it('accepts a whole namespace of queued classes once the deliberate exception is excluded', function () {
-    expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Queue')
+    expect([AfterCommitJob::class, QueuedJob::class, SyncJob::class])
         ->classes()
         ->toBeQueued()
         ->ignoring(SyncJob::class);
 });
 
 it('rejects the same namespace without the exclusion, proving it is load-bearing', function () {
-    expect(fn () => expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Queue')
+    expect(fn () => expect([AfterCommitJob::class, QueuedJob::class, SyncJob::class])
         ->classes()
         ->toBeQueued()
         ->ensureLazyExpectationIsVerified())

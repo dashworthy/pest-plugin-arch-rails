@@ -2,10 +2,10 @@
 
 use Dashworthy\PestPluginArchRails\Core\LineFinder;
 use Dashworthy\PestPluginArchRails\Core\MethodSource;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Core\AliasesTraitMethod;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Core\AttributedMethods;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Core\AttributeOnDeclarationLine;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Core\ChannelsTrait;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Support\AliasesTraitMethod;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Support\AttributedMethods;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Support\AttributeOnDeclarationLine;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Support\ChannelsTrait;
 use PhpParser\Node\Stmt\Return_;
 
 it('finds a method whose attribute or modifiers sit on earlier lines', function (string $method) {
@@ -17,10 +17,10 @@ it('finds a method whose attribute or modifiers sit on earlier lines', function 
 })->with(['attribute on its own line' => '__toString', 'multiple attributes' => 'many']);
 
 it('finds a method whose modifiers sit on separate lines', function () {
-    require_once __DIR__.'/../Fixtures/Hardening/Core/SplitModifiers.php.txt';
+    require_once __DIR__.'/../Fixtures/Support/SplitModifiers.php.txt';
 
     /** @var class-string $class */
-    $class = 'Dashworthy\\PestPluginArchRails\\Tests\\Fixtures\\Hardening\\Core\\SplitModifiers';
+    $class = 'Dashworthy\\PestPluginArchRails\\Tests\\Fixtures\\Support\\SplitModifiers';
     $source = MethodSource::find(new ReflectionClass($class), 'split');
 
     expect($source?->node->name->toString())->toBe('split');
@@ -35,7 +35,7 @@ it('finds a trait method imported under an alias', function () {
 });
 
 it('returns no nodes for a file with duplicate imports instead of crashing', function () {
-    $code = (string) file_get_contents(__DIR__.'/../Fixtures/Hardening/Core/DuplicateImports.php.txt');
+    $code = (string) file_get_contents(__DIR__.'/../Fixtures/Support/DuplicateImports.php.txt');
 
     expect(MethodSource::parseCode($code))->toBe([]);
 });

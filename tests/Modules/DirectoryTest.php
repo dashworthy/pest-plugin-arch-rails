@@ -17,13 +17,13 @@ describe('toUseApprovedDirectories', function () {
     });
 
     it('accepts a whole namespace once the classes that break the rule are ignored', function () {
-        expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains')
+        expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Billing')
             ->toUseApprovedDirectories(['Actions', 'Enums'], beneath: FIXTURE_MODULES)
             ->ignoring([InvoiceGizmo::class, InvoiceHelper::class]);
     });
 
     it('accepts every class in a typed directory once the one that is not that type is ignored', function () {
-        expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains')
+        expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Billing')
             ->toUseApprovedDirectories(['Actions' => Action::class, 'Enums' => UnitEnum::class], beneath: FIXTURE_MODULES)
             ->ignoring([InvoiceGizmo::class, InvoiceHelper::class, InvoiceTotals::class]);
     });
@@ -47,7 +47,7 @@ describe('toUseApprovedDirectories', function () {
     });
 
     it('accepts every class its directory\'s closure accepts', function () {
-        expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains')
+        expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Billing')
             ->toUseApprovedDirectories([
                 'Actions' => fn (string $class): bool => is_a($class, Action::class, true) || $class === InvoiceTotals::class,
                 'Enums' => UnitEnum::class,
@@ -91,7 +91,7 @@ describe('toUseDirectorySuffixes', function () {
     });
 
     it('accepts a whole namespace once the classes that break the rule are ignored', function () {
-        expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains')
+        expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Billing')
             ->toUseDirectorySuffixes(['Actions' => 'Invoice', 'Enums' => 'Status'], beneath: FIXTURE_MODULES)
             ->ignoring([InvoiceTotals::class, SaveDraft::class]);
     });

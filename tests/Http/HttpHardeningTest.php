@@ -3,28 +3,28 @@
 use Dashworthy\PestPluginArchRails\Http\GateAbilities;
 use Dashworthy\PestPluginArchRails\Http\GateAbilityInspector;
 use Dashworthy\PestPluginArchRails\Http\GateAuthorizationInspector;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\AliasedGateRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\AndCombinedRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\ApostropheAbilityRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\AuthorizeThenTrueRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\BypassedWithOrTrueRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\CommentedOutGateRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\DeniesGateRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\DottedAbilityRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\DoubleQuotedGateRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\EarlyReturnTrueRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\FullyQualifiedGateRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\InspectAllowedRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\LookalikeGateRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\MultilineGateRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\ReturnsTrueAfterGateRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\TraitAuthorizedRequest;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Http\UserCanRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\AliasedGateRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\AndCombinedRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\ApostropheAbilityRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\AuthorizeThenTrueRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\BypassedWithOrTrueRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\CommentedOutGateRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\DeniesGateRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\DottedAbilityRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\DoubleQuotedGateRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\EarlyReturnTrueRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\FullyQualifiedGateRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\InspectAllowedRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\LookalikeGateRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\MultilineGateRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\ReturnsTrueAfterGateRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\TraitAuthorizedRequest;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests\UserCanRequest;
 use PHPUnit\Framework\ExpectationFailedException;
 
 function hardeningAbilities(): array
 {
-    return [dirname(__DIR__).'/Fixtures/Hardening/Http/Abilities'];
+    return [dirname(__DIR__).'/Fixtures/Abilities'];
 }
 
 it('passes a request that calls Gate through its fully qualified name', function () {
@@ -104,7 +104,7 @@ it('reports a request with an early return true that skips the check', function 
 });
 
 it('reads every supported check form and ignores comments and lookalikes', function () {
-    expect(GateAbilities::inDirectories([dirname(__DIR__).'/Fixtures/Hardening/Http/Forms']))->toEqualCanonicalizing([
+    expect(GateAbilities::inDirectories([dirname(__DIR__).'/Fixtures/AbilityForms']))->toEqualCanonicalizing([
         'denies_ability', 'check_ability', 'authorize_ability', 'inspect_ability', 'any_one', 'any_two', 'none_ability',
         'fqcn_ability', 'user_can', 'user_cannot', 'auth_user_can', 'this_user_can', 'middleware_ability', 'route_can',
         'blade_can', 'blade_cannot', 'blade_any_one', 'blade_any_two', 'blade_gate',
@@ -132,7 +132,7 @@ it('scans a vendored directory but skips a vendor directory and non-php files', 
 });
 
 it('passes an empty permission list against a directory with no checks', function () {
-    $inspect = new GateAbilityInspector([dirname(__DIR__).'/Fixtures/Hardening/Http/Abilities/vendor']);
+    $inspect = new GateAbilityInspector([dirname(__DIR__).'/Fixtures/Abilities/vendor']);
 
     expect($inspect([]))->toBe([]);
 });
@@ -144,7 +144,7 @@ it('reports an unused duplicated permission once', function () {
 });
 
 it('fails the expectation with a readable message for a directory that does not exist', function () {
-    expect(fn () => expect(['posts.update'])->toMatchGateAbilities([dirname(__DIR__).'/Fixtures/Hardening/Http/Missing']))
+    expect(fn () => expect(['posts.update'])->toMatchGateAbilities([dirname(__DIR__).'/Fixtures/Requests/Missing']))
         ->toThrow(ExpectationFailedException::class);
 });
 

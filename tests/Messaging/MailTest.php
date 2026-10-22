@@ -21,14 +21,14 @@ it('rejects a mailable with no content method', function () {
 });
 
 it('accepts a whole namespace of mailables once the non-markdown ones are excluded', function () {
-    expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Mail')
+    expect([MarkdownMailable::class, NoContentMailable::class, PlainViewMailable::class])
         ->classes()
         ->toUseMarkdownMailTemplates()
         ->ignoring([PlainViewMailable::class, NoContentMailable::class]);
 });
 
 it('rejects the same namespace without the exclusions, proving they are load-bearing', function () {
-    expect(fn () => expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Mail')
+    expect(fn () => expect([MarkdownMailable::class, NoContentMailable::class, PlainViewMailable::class])
         ->classes()
         ->toUseMarkdownMailTemplates()
         ->ensureLazyExpectationIsVerified())

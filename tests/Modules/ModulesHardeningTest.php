@@ -3,20 +3,20 @@
 use Dashworthy\PestPluginArchRails\Modules\ApprovedDirectoriesInspector;
 use Dashworthy\PestPluginArchRails\Modules\DirectorySuffixesInspector;
 use Dashworthy\PestPluginArchRails\Modules\ModulePattern;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules\OrderContract;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules\Shop\Orders\Actions\Action;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules\Shop\Orders\Actions\ActionAction;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules\Shop\Orders\Actions\Deep\Er\Still\ShipOrder;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules\Shop\Orders\Actions\PlaceOrder;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules\Shop\Orders\Enums\OrderState;
-use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules\Shop\Orders\OrderHelper;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\OrderContract;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Shop\Orders\Actions\Action;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Shop\Orders\Actions\ActionAction;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Shop\Orders\Actions\Deep\Er\Still\ShipOrder;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Shop\Orders\Actions\PlaceOrder;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Shop\Orders\Enums\OrderState;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Shop\Orders\OrderHelper;
 
-const HARDENING_MODULES = 'Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules\*\*';
+const HARDENING_MODULES = 'Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\*\*';
 
 describe('ModulePattern', function () {
     it('ignores leading and trailing backslashes in the pattern', function (string $pattern) {
         expect((new ModulePattern($pattern))->locate(PlaceOrder::class))
-            ->toBe(['module' => 'Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules\Shop\Orders', 'directory' => 'Actions']);
+            ->toBe(['module' => 'Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Shop\Orders', 'directory' => 'Actions']);
     })->with([
         'leading' => '\\'.HARDENING_MODULES,
         'trailing' => HARDENING_MODULES.'\\',
@@ -25,21 +25,21 @@ describe('ModulePattern', function () {
 
     it('ignores a leading backslash on the class name', function () {
         expect((new ModulePattern(HARDENING_MODULES))->locate('\\'.PlaceOrder::class))
-            ->toBe(['module' => 'Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules\Shop\Orders', 'directory' => 'Actions']);
+            ->toBe(['module' => 'Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Shop\Orders', 'directory' => 'Actions']);
     });
 
     it('matches a pattern with no wildcard literally', function () {
-        $pattern = new ModulePattern('Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules\Shop\Orders');
+        $pattern = new ModulePattern('Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Shop\Orders');
 
         expect($pattern->locate(PlaceOrder::class)['directory'])->toBe('Actions')
-            ->and($pattern->locate(OrderHelper::class))->toBe(['module' => 'Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules\Shop\Orders', 'directory' => null])
+            ->and($pattern->locate(OrderHelper::class))->toBe(['module' => 'Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Shop\Orders', 'directory' => null])
             ->and($pattern->locate(OrderContract::class))->toBeNull();
     });
 
     it('matches a wildcard in the last segment only one segment deep', function () {
-        $pattern = new ModulePattern('Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules\Shop\*');
+        $pattern = new ModulePattern('Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Shop\*');
 
-        expect($pattern->locate(ShipOrder::class))->toBe(['module' => 'Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules\Shop\Orders', 'directory' => 'Actions']);
+        expect($pattern->locate(ShipOrder::class))->toBe(['module' => 'Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Shop\Orders', 'directory' => 'Actions']);
     });
 
     it('treats a class whose namespace is the module itself as sitting directly in it', function () {
@@ -51,11 +51,11 @@ describe('ModulePattern', function () {
     });
 
     it('matches the parent segments case-insensitively, as PHP namespaces are', function () {
-        expect((new ModulePattern('dashworthy\pestpluginarchrails\tests\fixtures\hardening\modules\*\*'))->locate(PlaceOrder::class))->not->toBeNull();
+        expect((new ModulePattern('dashworthy\pestpluginarchrails\tests\fixtures\domains\*\*'))->locate(PlaceOrder::class))->not->toBeNull();
     });
 
     it('rejects ** rather than silently matching nothing', function () {
-        new ModulePattern('Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\**');
+        new ModulePattern('Dashworthy\PestPluginArchRails\Tests\Fixtures\**');
     })->throws(InvalidArgumentException::class, 'only * on its own, matching exactly one segment, is supported');
 
     it('rejects a partial wildcard segment', function () {
@@ -189,7 +189,7 @@ describe('DirectorySuffixesInspector', function () {
 
 describe('arch chain', function () {
     it('accepts a deliberate namespace once rule-breakers are ignored', function () {
-        expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Modules')
+        expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Shop')
             ->toUseApprovedDirectories(['Actions', 'Enums'], beneath: HARDENING_MODULES)
             ->ignoring([OrderHelper::class]);
     });

@@ -1,8 +1,11 @@
 <?php
 
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent\ConventionalModel;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent\FillableModel;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent\GuardedModel;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent\LegacyTableModel;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent\NotAModel;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent\WideOpenModel;
 use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\AssertionFailedError;
 
@@ -21,7 +24,7 @@ it('reports a non-model as a selection mistake', function () {
 });
 
 it('accepts a whole namespace of models once the legacy table is excluded', function () {
-    expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent')
+    expect([ConventionalModel::class, FillableModel::class, GuardedModel::class, LegacyTableModel::class, NotAModel::class, WideOpenModel::class])
         ->classes()
         ->extending(Model::class)
         ->toMatchTableName()
@@ -29,7 +32,7 @@ it('accepts a whole namespace of models once the legacy table is excluded', func
 });
 
 it('rejects the same namespace without the exclusion, proving it is load-bearing', function () {
-    expect(fn () => expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent')
+    expect(fn () => expect([ConventionalModel::class, FillableModel::class, GuardedModel::class, LegacyTableModel::class, NotAModel::class, WideOpenModel::class])
         ->classes()
         ->extending(Model::class)
         ->toMatchTableName()
@@ -43,7 +46,7 @@ it('rejects the same namespace without the exclusion, proving it is load-bearing
  | is exactly what the not-an-Eloquent-model message tells you to fix.
  */
 it('sweeps a non-model into the selection when the type filter is dropped', function () {
-    expect(fn () => expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Eloquent')
+    expect(fn () => expect([ConventionalModel::class, FillableModel::class, GuardedModel::class, LegacyTableModel::class, NotAModel::class, WideOpenModel::class])
         ->classes()
         ->toMatchTableName()
         ->ignoring(LegacyTableModel::class)

@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Dashworthy\PestPluginArchRails\Tests\Fixtures\Support;
+
+/** Kept as .txt so Pint does not join the modifiers onto one line. */
+final class SplitModifiers
+{
+    final
+    public
+    static
+    function split(): string
+    {
+        return 'split';
+    }
+}

@@ -21,14 +21,14 @@ it('rejects a notification returning no channels', function () {
 });
 
 it('accepts a whole namespace of notifications once the undeclared ones are excluded', function () {
-    expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Notifications')
+    expect([EmptyChannelsNotification::class, GoodNotification::class, NoViaNotification::class])
         ->classes()
         ->toDeclareNotificationChannels()
         ->ignoring([NoViaNotification::class, EmptyChannelsNotification::class]);
 });
 
 it('rejects the same namespace without the exclusions, proving they are load-bearing', function () {
-    expect(fn () => expect('Dashworthy\PestPluginArchRails\Tests\Fixtures\Notifications')
+    expect(fn () => expect([EmptyChannelsNotification::class, GoodNotification::class, NoViaNotification::class])
         ->classes()
         ->toDeclareNotificationChannels()
         ->ensureLazyExpectationIsVerified())
