@@ -42,6 +42,10 @@ arch('notifications are queued')
     ->toBeQueued();
 ```
 
+Give each verb its own `arch()` call. Pest applies a selector such as
+`->extending(...)` only to the first verb in a chain, so a second chained verb
+runs against every class in the namespace and fails on the first non-match.
+
 Scope with `->classes()`, `->extending(...)`, `->ignoring('Fully\Qualified\Name')`,
 or by targeting a narrower namespace. Target a single class by passing its FQCN
 to `expect()`.
@@ -119,9 +123,11 @@ narrow the layer with `->ignoring(...)`.
 
 - A `via()` that returns a variable or computed list is trusted: its value is
   not known until it runs.
-- An ability held in a variable or constant is invisible to the gate verbs.
-  Pass it to `toMatchGateAbilities()` as `$alsoChecked` rather than deleting
-  the permission.
+- An ability held in a variable is invisible to the gate verbs (constants and
+  enum `->value` are read). Pass it to `toMatchGateAbilities()` as
+  `$alsoChecked` rather than deleting the permission.
+- A check with a model argument (`->can('update', $post)`) is a policy check
+  and is left out of permission matching.
 - Validation inside a closure within a controller action is not read by
   `toUseFormRequests()`.
 - Configuration mistakes in a rule (a `**` wildcard, an empty suffix, an

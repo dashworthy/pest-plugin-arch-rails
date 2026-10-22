@@ -6,14 +6,18 @@ namespace Dashworthy\PestPluginArchRails\Http;
 
 use Dashworthy\PestPluginArchRails\Core\Inspector;
 use Dashworthy\PestPluginArchRails\Core\MethodSource;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Validator;
+use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\NullsafeMethodCall;
 use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PHPUnit\Architecture\Elements\ObjectDescription;
+use ReflectionIntersectionType;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionType;
@@ -23,12 +27,17 @@ use ReflectionUnionType;
  * Decides whether every action on a controller validates through a form request rather than inline.
  *
  * An action fails when it takes a plain Illuminate\Http\Request, or validates in its own body through
- * $request->validate(), $this->validate(), request()->validate() or Validator::make(). Actions that take no request
+ * $request->validate() or validateWithBag() on a request-typed parameter, $this or request(), $this->validateWith(),
+ * Request::validate(), Validator::make(), Validator::validate() or validator(). Actions that take no request
  * at all, such as show(Widget $widget), pass: there is nothing for them to validate.
  */
 final readonly class FormRequestInspector implements Inspector
 {
     private const string PLAIN_REQUEST = 'Illuminate\\Http\\Request';
+
+    private const string FORM_REQUEST = 'Illuminate\\Foundation\\Http\\FormRequest';
+
+    private const string REQUEST_FACADE = Request::class;
 
     /**
      * Calls on a request or controller that validate inline.
@@ -90,7 +99,7 @@ final readonly class FormRequestInspector implements Inspector
             default => [],
         };
 
-        return array_any($types, fn (\ReflectionNamedType|\ReflectionIntersectionType $named): bool => $named instanceof ReflectionNamedType && ltrim($named->getName(), '\\') === self::PLAIN_REQUEST);
+        return array_any($types, fn (ReflectionNamedType|ReflectionIntersectionType $named): bool => $named instanceof ReflectionNamedType && ltrim($named->getName(), '\\') === self::PLAIN_REQUEST);
     }
 
     /**
@@ -104,18 +113,38 @@ final readonly class FormRequestInspector implements Inspector
             return null;
         }
 
+        $requestVariables = $this->requestVariables($method);
+
         foreach ([...$source->nodesOfType(MethodCall::class), ...$source->nodesOfType(NullsafeMethodCall::class)] as $call) {
-            if ($call->name instanceof Identifier && in_array($call->name->toLowerString(), self::VALIDATING_METHODS, true)) {
+            if (! $call->name instanceof Identifier) {
+                continue;
+            }
+
+            $name = $call->name->toLowerString();
+
+            if (in_array($name, self::VALIDATING_METHODS, true) && $this->isRequestLike($call->var, $requestVariables)) {
+                return '->'.$call->name->toString().'()';
+            }
+
+            if ($name === 'validatewith' && $this->isThis($call->var)) {
                 return '->'.$call->name->toString().'()';
             }
         }
 
         foreach ($source->nodesOfType(StaticCall::class) as $call) {
-            if ($call->class instanceof Name
-                && in_array($call->class->toString(), [Validator::class, 'Validator'], true)
-                && $call->name instanceof Identifier
-                && $call->name->toLowerString() === 'make') {
-                return 'Validator::make()';
+            if (! $call->class instanceof Name || ! $call->name instanceof Identifier) {
+                continue;
+            }
+
+            $class = $call->class->toString();
+            $name = $call->name->toLowerString();
+
+            if (in_array($class, [Validator::class, 'Validator'], true) && in_array($name, ['make', 'validate'], true)) {
+                return 'Validator::'.$call->name->toString().'()';
+            }
+
+            if (in_array($class, [self::REQUEST_FACADE, 'Request'], true) && in_array($name, self::VALIDATING_METHODS, true)) {
+                return 'Request::'.$call->name->toString().'()';
             }
         }
 
@@ -126,5 +155,55 @@ final readonly class FormRequestInspector implements Inspector
         }
 
         return null;
+    }
+
+    /**
+     * Names of the action's parameters typed as a request: Illuminate\Http\Request or any subclass, form requests
+     * included.
+     *
+     * @return list<string>
+     */
+    private function requestVariables(ReflectionMethod $method): array
+    {
+        $names = [];
+
+        foreach ($method->getParameters() as $parameter) {
+            $type = $parameter->getType();
+            $types = match (true) {
+                $type instanceof ReflectionNamedType => [$type],
+                $type instanceof ReflectionUnionType => $type->getTypes(),
+                default => [],
+            };
+
+            if (array_any($types, fn (ReflectionNamedType|ReflectionIntersectionType $named): bool => $named instanceof ReflectionNamedType
+                && ! $named->isBuiltin()
+                && (ClassAncestry::extends($named->getName(), self::PLAIN_REQUEST) || ClassAncestry::extends($named->getName(), self::FORM_REQUEST)))) {
+                $names[] = $parameter->getName();
+            }
+        }
+
+        return $names;
+    }
+
+    /**
+     * Whether a validate() receiver is the request or the controller: a request-typed parameter, $this or request().
+     *
+     * @param  list<string>  $requestVariables
+     */
+    private function isRequestLike(Expr $receiver, array $requestVariables): bool
+    {
+        if ($receiver instanceof Variable && is_string($receiver->name)) {
+            return $receiver->name === 'this' || in_array($receiver->name, $requestVariables, true);
+        }
+
+        return $receiver instanceof FuncCall
+            && $receiver->name instanceof Name
+            && $receiver->name->toLowerString() === 'request'
+            && $receiver->getArgs() === [];
+    }
+
+    private function isThis(Expr $receiver): bool
+    {
+        return $receiver instanceof Variable && $receiver->name === 'this';
     }
 }

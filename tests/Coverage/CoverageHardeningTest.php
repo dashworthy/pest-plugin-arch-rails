@@ -6,6 +6,7 @@ use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\App\CaseAct
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\App\DirectoryTestAction;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\App\FinalReadonlyAction;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\App\GrandchildAction;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\App\Nested\NestedCaseAction;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\App\SameNameAction;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\App\UntestedAction;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Coverage\Support\HardeningContract;
@@ -153,4 +154,31 @@ it('resolves a relative root containing dot-dot lexically when it does not exist
     $map = CoverageMap::make(['nowhere/./sub/../app' => '/tests/Unit']);
 
     expect($map->testCandidatesFor('nowhere/app/Thing.php'))->toBe(['/tests/Unit/ThingTest.php']);
+});
+
+it('reports a class whose test directory differs from its namespace only in case', function () {
+    expect(fn () => expect(NestedCaseAction::class)
+        ->toHaveTests(hardeningCoverageRoots())
+        ->ensureLazyExpectationIsVerified())
+        ->toThrow(AssertionFailedError::class, 'has no corresponding test');
+});
+
+it('lists each test directory once per run', function () {
+    $tests = sys_get_temp_dir().'/arch-rails-coverage-'.bin2hex(random_bytes(6));
+    mkdir($tests);
+    $inspector = new CoverageInspector(CoverageMap::make([hardeningCoverageFixture('App') => $tests]));
+
+    touch($tests.'/FinalReadonlyActionTest.php');
+
+    try {
+        expect($inspector(objectDescription(FinalReadonlyAction::class)))->toBeNull();
+
+        touch($tests.'/UntestedActionTest.php');
+
+        expect($inspector(objectDescription(UntestedAction::class)))->toContain('has no corresponding test');
+    } finally {
+        @unlink($tests.'/UntestedActionTest.php');
+        unlink($tests.'/FinalReadonlyActionTest.php');
+        rmdir($tests);
+    }
 });

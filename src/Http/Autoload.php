@@ -24,7 +24,7 @@ use PHPUnit\Framework\Assert;
  |                   the request should check, or null to accept any.
  */
 expect()->extend('toAuthorizeWithGate', function (?Closure $expectedAbility = null): ArchExpectation {
-    return Rule::fromInspector($this, new GateAuthorizationInspector($expectedAbility), LineFinder::methodOrClass('function authorize'));
+    return Rule::fromInspector($this, new GateAuthorizationInspector($expectedAbility), LineFinder::methodOrClass('function authorize('));
 });
 
 /*

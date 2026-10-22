@@ -7,11 +7,16 @@ Eloquent table names and mass assignment.
 ```php
 use Illuminate\Database\Eloquent\Model;
 
-arch('every model is safe and conventional')
+arch('every model guards mass assignment')
     ->expect('App')
     ->classes()
     ->extending(Model::class)
-    ->toGuardMassAssignment()
+    ->toGuardMassAssignment();
+
+arch('every model matches its table name')
+    ->expect('App')
+    ->classes()
+    ->extending(Model::class)
     ->toMatchTableName();
 ```
 

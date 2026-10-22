@@ -1,9 +1,13 @@
 <?php
 
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Messaging\AbstractContentMailable;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Messaging\AbstractViaNotification;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Messaging\AssignedContentMailable;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Messaging\ClosureReturnViaNotification;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Messaging\ConditionalEmptyViaNotification;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Messaging\ContentSubclassMailable;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Messaging\DocblockFirstMailable;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Messaging\DocblockFirstNotification;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Messaging\FluentMarkdownMailable;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Messaging\HelperBeforeViaNotification;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Messaging\InheritsEmptyViaNotification;
@@ -173,3 +177,25 @@ it('rejects Content built without a non-null markdown argument', function (strin
     'positional view only' => PositionalViewMailable::class,
     'markdown: passed to an unrelated call' => UnrelatedMarkdownArgMailable::class,
 ]);
+
+it('accepts an abstract content(), leaving the template to each concrete subclass', function () {
+    expect(messagingHardeningFailure(AbstractContentMailable::class, 'toUseMarkdownMailTemplates'))->toBeNull();
+});
+
+it('accepts a Content subclass built with markdown:', function () {
+    expect(ContentSubclassMailable::class)->toUseMarkdownMailTemplates();
+});
+
+it('points an inherited empty via() at the class declaration, not a docblock above it', function () {
+    $failure = messagingHardeningFailure(DocblockFirstNotification::class, 'toDeclareNotificationChannels');
+
+    expect($failure)->not->toBeNull()
+        ->and($failure->toCollisionEditor()->getLine())->toBe(10);
+});
+
+it('points a mailable with no content() at the class declaration, not a docblock above it', function () {
+    $failure = messagingHardeningFailure(DocblockFirstMailable::class, 'toUseMarkdownMailTemplates');
+
+    expect($failure)->not->toBeNull()
+        ->and($failure->toCollisionEditor()->getLine())->toBe(10);
+});

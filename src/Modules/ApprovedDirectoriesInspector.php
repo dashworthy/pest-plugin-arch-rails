@@ -26,14 +26,15 @@ final readonly class ApprovedDirectoriesInspector
      */
     public const string APPROVAL = 'If none fits, ask for approval before creating a new directory or adding one to the approved list.';
 
-    /** @var array<string, class-string|Closure(class-string): (bool|string)|null> */
+    /** @var array<array-key, class-string|Closure(class-string): (bool|string)|null> */
     private array $directories;
 
     private ModulePattern $modules;
 
     /**
      * A name given as a key names the class or interface every class in that directory must be, or a closure that is
-     * given each class's name there and returns true to accept it, or false or the reason to reject it.
+     * given each class's name there and returns true to accept it, or false or the reason to reject it. A key given
+     * null approves the directory for any class, as a bare name does.
      *
      * @param  array<mixed>  $directories  The approved directory names.
      * @param  string  $beneath  The parent namespace, * matching any one segment.
@@ -61,6 +62,12 @@ final readonly class ApprovedDirectoriesInspector
 
             if ($key === '') {
                 throw new InvalidArgumentException('An approved directory name must not be empty.');
+            }
+
+            if ($value === null) {
+                $approved[$key] = null;
+
+                continue;
             }
 
             if ($value instanceof Closure) {
@@ -185,8 +192,8 @@ final readonly class ApprovedDirectoriesInspector
     private function caseInsensitiveMatch(string $directory): ?string
     {
         foreach (array_keys($this->directories) as $approved) {
-            if (strcasecmp($approved, $directory) === 0) {
-                return $approved;
+            if (strcasecmp((string) $approved, $directory) === 0) {
+                return (string) $approved;
             }
         }
 

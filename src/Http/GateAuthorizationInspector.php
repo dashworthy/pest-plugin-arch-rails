@@ -38,18 +38,27 @@ final readonly class GateAuthorizationInspector
 
         if (! $reflection->hasMethod('authorize')) {
             return 'Expecting the request to authorize through a permission, but it declares no authorize() method. '
-                .'Add one that returns Gate::allows() with the permission name.';
+                .'Add one that returns a gate check, such as Gate::allows(), with the permission name.';
         }
 
-        $abilities = GateAbilities::decidingMethod($reflection->getMethod('authorize'));
+        $deciding = GateAbilities::decidingMethod($reflection->getMethod('authorize'));
 
-        if ($abilities === null) {
-            return 'Expecting the request to authorize through a permission, but authorize() does not call '
-                .'Gate::allows() with a permission name in a way that decides what it returns. Return the check '
-                .'(negated or joined with && if needed), or call Gate::authorize() first.';
+        if ($deciding === null) {
+            return 'Expecting the request to authorize through a permission, but authorize() does not decide what it '
+                .'returns with a gate check. Return the check (negated, or joined with && or ||), or call '
+                .'Gate::authorize() before any return.';
         }
 
         $expected = $this->expectedAbility instanceof Closure ? ($this->expectedAbility)($object->name) : null;
+
+        $abilities = $deciding['abilities'];
+
+        if ($expected !== null && ! in_array($expected, $abilities, true) && $deciding['unresolved']) {
+            return sprintf(
+                "Expecting authorize() to check the '%s' permission this request's name implies, but its ability cannot be read from source. Name it with a string, a class constant or an enum case's ->value.",
+                $expected,
+            );
+        }
 
         if ($expected !== null && ! in_array($expected, $abilities, true)) {
             return sprintf(

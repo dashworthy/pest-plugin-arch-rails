@@ -26,7 +26,7 @@ class Checks
         $user->cannot('user_cannot');
         auth()->user()->can('auth_user_can');
         $this->user()->can('this_user_can');
-        $route->middleware('can:middleware_ability,post');
+        $route->middleware('can:middleware_ability');
         $route->can('route_can');
     }
 }

@@ -12,7 +12,7 @@ use Pest\Arch\Support\FileLineFinder;
 final class LineFinder
 {
     /** A line declaring a class, interface, trait or enum, not merely mentioning one. */
-    private const string DECLARATION = '/^\s*((final|abstract|readonly)\s+)*(class|interface|trait|enum)\s/';
+    private const string DECLARATION = '/^\s*(#\[.*\]\s*)*((final|abstract|readonly)\s+)*(class|interface|trait|enum)\s/';
 
     /**
      * The line declaring the class, interface, trait or enum.

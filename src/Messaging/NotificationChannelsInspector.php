@@ -54,6 +54,6 @@ final class NotificationChannelsInspector implements Inspector
      */
     public function line(string $path): int
     {
-        return $this->line ?? LineFinder::methodOrClass('class ')($path);
+        return $this->line ?? LineFinder::declaration()($path);
     }
 }

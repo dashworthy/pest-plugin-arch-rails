@@ -111,8 +111,9 @@ final readonly class CoverageInspector
     }
 
     /**
-     * is_file() alone accepts caseactionTest.php for CaseActionTest.php on a
-     * case-insensitive filesystem, so the on-disk basename is compared too.
+     * is_file() alone accepts tests/unit/caseactionTest.php for tests/Unit/CaseActionTest.php on a case-insensitive
+     * filesystem, so every segment below the mapped test root is checked against its parent directory's real listing.
+     * Listings are cached per directory for the run, so a large suite scans each directory once.
      */
     private function fileExistsWithExactCase(string $path): bool
     {
@@ -120,8 +121,34 @@ final readonly class CoverageInspector
             return false;
         }
 
-        $entries = scandir(dirname($path));
+        $segment = basename($path);
+        $directory = dirname($path);
 
-        return $entries !== false && in_array(basename($path), $entries, true);
+        while ($segment !== '' && $directory !== $path) {
+            if (! in_array($segment, $this->listing($directory), true)) {
+                return false;
+            }
+
+            if ($this->coverage->isTestRoot($directory)) {
+                return true;
+            }
+
+            $path = $directory;
+            $segment = basename($directory);
+            $directory = dirname($directory);
+        }
+
+        return true;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function listing(string $directory): array
+    {
+        /** @var array<string, list<string>> $cache */
+        static $cache = [];
+
+        return $cache[$directory] ??= scandir($directory) ?: [];
     }
 }

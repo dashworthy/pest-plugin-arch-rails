@@ -31,7 +31,7 @@ it('accepts any permission when the convention has no opinion', function () {
 
 it('reports a request whose authorize() checks no permission', function () {
     expect((new GateAuthorizationInspector)(objectDescription(UntypedRequest::class)))
-        ->toContain('authorize() does not call Gate::allows()');
+        ->toContain('authorize() does not decide what it returns with a gate check');
 });
 
 it('reports a request with no authorize() method', function () {

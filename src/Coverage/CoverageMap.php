@@ -95,6 +95,17 @@ final readonly class CoverageMap
     }
 
     /**
+     * Whether the directory is one of the mapped test roots, where an exact-case
+     * check of a candidate's path stops: the roots are the caller's to name.
+     */
+    public function isTestRoot(string $directory): bool
+    {
+        $directory = self::normalise($directory);
+
+        return array_any($this->map, static fn (array $tests): bool => in_array($directory, $tests, true));
+    }
+
+    /**
      * The most specific source root containing the file, so a subtree can point
      * at a different test root without restating its parent.
      */

@@ -51,6 +51,11 @@ final class MarkdownMailTemplateInspector implements Inspector
             $this->line = $content->line;
         }
 
+        // An abstract content() leaves the template to each concrete subclass, which is checked on its own.
+        if ($content->node->stmts === null) {
+            return null;
+        }
+
         foreach ($content->nodesOfType(New_::class) as $new) {
             if ($this->isContent($new) && $this->namesMarkdown($new->args)) {
                 return null;
@@ -76,7 +81,7 @@ final class MarkdownMailTemplateInspector implements Inspector
      */
     public function line(string $path): int
     {
-        return $this->line ?? LineFinder::methodOrClass('class ')($path);
+        return $this->line ?? LineFinder::declaration()($path);
     }
 
     /**
@@ -116,8 +121,13 @@ final class MarkdownMailTemplateInspector implements Inspector
 
     private function isContent(New_ $new): bool
     {
-        return $new->class instanceof Name
-            && strcasecmp(ltrim($new->class->toString(), '\\'), self::CONTENT) === 0;
+        if (! $new->class instanceof Name) {
+            return false;
+        }
+
+        $class = ltrim($new->class->toString(), '\\');
+
+        return strcasecmp($class, self::CONTENT) === 0 || is_subclass_of($class, self::CONTENT);
     }
 
     private function isContentChain(Expr $expr): bool

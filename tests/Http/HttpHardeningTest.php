@@ -71,12 +71,12 @@ it('reports a request that discards its Gate check and returns true', function (
 
 it('reports a request that calls allows() on a class that only ends in Gate', function () {
     expect((new GateAuthorizationInspector)(objectDescription(LookalikeGateRequest::class)))
-        ->toContain('authorize() does not call Gate::allows()');
+        ->toContain('authorize() does not decide what it returns with a gate check');
 });
 
 it('does not read a commented-out Gate call as a check', function () {
     expect((new GateAuthorizationInspector)(objectDescription(CommentedOutGateRequest::class)))
-        ->toContain('authorize() does not call Gate::allows()');
+        ->toContain('authorize() does not decide what it returns with a gate check');
 });
 
 it('reads a negated Gate::denies()', function () {
@@ -127,7 +127,7 @@ it('scans a vendored directory but skips a vendor directory and non-php files', 
     $inspect = new GateAbilityInspector(hardeningAbilities());
 
     expect($inspect(['posts.update', 'admin:read']))->toBe([
-        "Gate::allows() checks the ability 'vendored_ability', but no such permission exists, so it can never be granted. Add the permission, or fix the ability name.",
+        "The code checks the ability 'vendored_ability', but no such permission exists, so it can never be granted. Add the permission, or fix the ability name.",
     ]);
 });
 

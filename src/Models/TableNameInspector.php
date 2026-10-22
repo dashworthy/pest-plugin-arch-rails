@@ -6,6 +6,7 @@ namespace Dashworthy\PestPluginArchRails\Models;
 
 use Dashworthy\PestPluginArchRails\Core\Inspector;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Concerns\AsPivot;
 use Illuminate\Database\Eloquent\Relations\MorphPivot;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Str;
@@ -62,7 +63,9 @@ final class TableNameInspector implements Inspector
     {
         $basename = class_basename($class);
 
-        if (is_subclass_of($class, Pivot::class) && ! is_subclass_of($class, MorphPivot::class)) {
+        $isPivot = is_subclass_of($class, Pivot::class) || in_array(AsPivot::class, class_uses_recursive($class), true);
+
+        if ($isPivot && ! is_subclass_of($class, MorphPivot::class)) {
             return str_replace('\\', '', Str::snake(Str::singular($basename)));
         }
 

@@ -30,7 +30,8 @@ arch('every module keeps to the approved directories')
 ```
 
 A directory keyed to a class or interface holds only classes that extend or
-implement it. Where one type is not enough, key it to a closure instead: it is
+implement it. A directory keyed to `null` (`'Data' => null`) is approved
+for any class, the same as listing its name alone. Where one type is not enough, key it to a closure instead: it is
 given each class's name and returns `true` to accept it, or `false` or the
 reason to reject it.
 

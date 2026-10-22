@@ -19,6 +19,13 @@ final class ClassAncestry
 {
     private const int MAX_DEPTH = 32;
 
+    /**
+     * Parents already read from source, keyed by lower-cased class name.
+     *
+     * @var array<string, ?string>
+     */
+    private static array $parents = [];
+
     public static function extends(string $class, string $ancestor): bool
     {
         $class = ltrim($class, '\\');
@@ -55,6 +62,17 @@ final class ClassAncestry
     }
 
     private static function parentFromSource(string $class): ?string
+    {
+        $key = strtolower($class);
+
+        if (! array_key_exists($key, self::$parents)) {
+            self::$parents[$key] = self::readParent($class);
+        }
+
+        return self::$parents[$key];
+    }
+
+    private static function readParent(string $class): ?string
     {
         $file = self::fileOf($class);
 

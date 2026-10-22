@@ -15,12 +15,25 @@ arch('every form request authorizes through a gate')
 ```
 
 `toAuthorizeWithGate()` passes when the value `authorize()` returns depends on a
-gate check: every `return` is a check, its negation, `->allowed()` on one, or an
-`&&` containing one. A `Gate::authorize('...')` statement, which throws when
-denied, also counts. `Gate::allows('x') || true`, or a check whose result is
-thrown away before `return true`, is reported. Pass a closure to also pin *which* ability: it receives the
+gate check. Every `return` must be one of:
+
+- a check, such as `Gate::allows(...)`, `Gate::forUser($user)->allows(...)` or
+  `$this->user()->can(...)`, or `->allowed()` on `Gate::inspect(...)`;
+- `false`, since refusing never grants access;
+- an `&&` with a deciding side, or an `||` or ternary whose sides all decide.
+
+Negation is tracked, so `! (Gate::allows('x') && $other)`, which grants access
+whenever `$other` is false, is reported. Instead of returning a check,
+`authorize()` may call `Gate::authorize('...')`, which throws when denied, as a
+statement before any `return`. `Gate::allows('x') || true`, a check whose
+result is thrown away, or an early `return true` before the guard is reported.
+Returns inside closures and anonymous classes are not `authorize()`'s returns.
+
+The ability may be a string, a class constant (`self::ABILITY`) or an enum's
+`->value`. Pass a closure to also pin *which* ability: it receives the
 request's class name and returns the ability it should check, or `null` to
-accept any.
+accept any. When a closure is given and the ability cannot be read from source,
+the request is reported.
 
 ```php
 use Illuminate\Support\Str;
@@ -94,22 +107,40 @@ test('permissions and gate checks agree', function () {
 });
 ```
 
-`toMatchGateAbilities()` reads every ability check in the PHP files beneath the
-directories, outside any `vendor` directory: `Gate::allows`, `denies`, `check`,
-`authorize`, `inspect`, `any` and `none`; `->can()`, `->cannot()` and `->cant()`
-on any object; and `'can:...'` middleware strings. Blade views are scanned for
-`@can`, `@cannot`, `@canany`, `@elsecan` and `@elsecannot`. Comments never count. It fails for a
-permission nothing checks (dead weight) and for a checked ability no permission
-backs (it can never be granted), listing every mismatch at once. Pass abilities
-the source cannot show — names built at runtime, or checked by a package — as
-`$alsoChecked`.
+`toMatchGateAbilities()` reads the ability checks in the PHP files beneath the
+directories, outside any `vendor` directory:
+
+- `Gate::allows`, `denies`, `check`, `authorize`, `inspect`, `any` and `none`,
+  also through `Gate::forUser($user)`;
+- `->can()`, `->cannot()`, `->cant()` and `->canAny()` on any object;
+- `$this->authorize()` and `$this->authorizeForUser()` in controllers;
+- `'can:...'` middleware strings, and the `#[Authorize('...')]` attribute or
+  `Authorize::using('...')`;
+- in Blade views, `@can`, `@cannot`, `@canany`, `@elsecan`, `@elsecanany` and
+  `@elsecannot`.
+
+It fails for a permission nothing checks (dead weight) and for a checked
+ability no permission backs (it can never be granted), listing every mismatch
+at once. Comments, including Blade `{{-- --}}` comments, never count.
+
+A check that passes a model or other argument after the ability, such as
+`->can('update', $post)`, `@can('view', $post)` or `'can:update,post'`, is a
+policy check, not a permission. It is left out of permission matching
+entirely.
+
+Pass abilities the source cannot show, such as names built at runtime or
+checked by a package, as `$alsoChecked`.
 
 ## Edges
 
 - Checks are read from the parsed code, so aliased imports (`use Gate as G`),
   the fully qualified facade and the global `Gate` alias all resolve, while a
   class that merely ends in `Gate` does not count.
-- An ability held in a variable or constant cannot be read. Pass it to
-  `toMatchGateAbilities()` as `$alsoChecked`.
+- Class constants and enum `->value` abilities are resolved by reflection. An
+  ability held in a variable, or a double-quoted string with interpolation,
+  cannot be read. Pass it to `toMatchGateAbilities()` as `$alsoChecked`.
+- A PHP file is parsed as written, so a plain-PHP view that starts with HTML is
+  read too. Files mentioning none of `gate`, `can` or `authorize` are skipped
+  without parsing.
 - A permission listed twice is reported once. A directory that does not exist
   fails the expectation with a readable message.

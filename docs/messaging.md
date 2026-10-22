@@ -7,11 +7,16 @@ Queued jobs, notifications and mailables.
 ```php
 use Illuminate\Notifications\Notification;
 
-arch('every notification is queued and declares its channels')
+arch('every notification is queued')
     ->expect('App')
     ->classes()
     ->extending(Notification::class)
-    ->toBeQueued()
+    ->toBeQueued();
+
+arch('every notification declares its channels')
+    ->expect('App')
+    ->classes()
+    ->extending(Notification::class)
     ->toDeclareNotificationChannels();
 ```
 

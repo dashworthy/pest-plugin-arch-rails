@@ -28,6 +28,9 @@ use ReflectionException;
  */
 final class MethodSource
 {
+    /** The most parsed files kept in memory; the least recently used is evicted beyond this. */
+    private const int CACHE_SIZE = 200;
+
     /** @var array<string, array<Node>> */
     private static array $parsed = [];
 
@@ -52,21 +55,42 @@ final class MethodSource
 
         $file = $method->getFileName();
         $line = $method->getStartLine();
+        $endLine = $method->getEndLine();
 
-        if ($file === false || $line === false) {
+        if ($file === false || $line === false || $endLine === false) {
             return null;
         }
 
         /** @var array<int, ClassMethod> $candidates */
         $candidates = (new NodeFinder)->findInstanceOf(self::parse($file), ClassMethod::class);
 
+        $match = null;
+
         foreach ($candidates as $candidate) {
-            if ($candidate->getStartLine() === $line && $candidate->name->toLowerString() === strtolower($name)) {
+            if (! self::spans($candidate, $line, $endLine)) {
+                continue;
+            }
+
+            if ($candidate->name->toLowerString() === strtolower($method->getName())) {
                 return new self($candidate, $file, $line);
             }
+
+            $match ??= $candidate;
         }
 
-        return null;
+        return $match === null ? null : new self($match, $file, $line);
+    }
+
+    /**
+     * Whether the node is the method reflection reported: php-parser starts a method at its first attribute or
+     * modifier, which may sit on an earlier line than reflection's start, so the node must contain the reflected
+     * start line and end on the reflected end line. Matching by line rather than name also finds a trait method
+     * imported under an alias, whose declaration carries the original name.
+     */
+    private static function spans(ClassMethod $candidate, int $line, int $endLine): bool
+    {
+        return $candidate->getStartLine() <= $line
+            && $candidate->getEndLine() === $endLine;
     }
 
     /**
@@ -119,11 +143,11 @@ final class MethodSource
     {
         try {
             $stmts = (new ParserFactory)->createForHostVersion()->parse($code);
+
+            return new NodeTraverser(new NameResolver)->traverse($stmts ?? []);
         } catch (Error) {
             return [];
         }
-
-        return new NodeTraverser(new NameResolver)->traverse($stmts ?? []);
     }
 
     /**
@@ -131,12 +155,20 @@ final class MethodSource
      */
     private static function parse(string $file): array
     {
-        if (! isset(self::$parsed[$file])) {
-            $code = @file_get_contents($file);
+        if (isset(self::$parsed[$file])) {
+            $nodes = self::$parsed[$file];
+            unset(self::$parsed[$file]);
 
-            self::$parsed[$file] = $code === false ? [] : self::parseCode($code);
+            return self::$parsed[$file] = $nodes;
         }
 
-        return self::$parsed[$file];
+        $code = @file_get_contents($file);
+        $nodes = $code === false ? [] : self::parseCode($code);
+
+        if (count(self::$parsed) >= self::CACHE_SIZE) {
+            unset(self::$parsed[array_key_first(self::$parsed)]);
+        }
+
+        return self::$parsed[$file] = $nodes;
     }
 }

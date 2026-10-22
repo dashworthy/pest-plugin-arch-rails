@@ -39,11 +39,11 @@ final readonly class GateAbilityInspector
         $failures = [];
 
         foreach (array_diff(array_unique($permissions), $checked) as $unused) {
-            $failures[] = sprintf("Permission '%s' exists, but nothing checks it with Gate::allows(). Check it where it is needed, or remove the permission.", $unused);
+            $failures[] = sprintf("Permission '%s' exists, but nothing checks it. Check it where it is needed, or remove the permission.", $unused);
         }
 
         foreach (array_diff($inSource, $permissions) as $unknown) {
-            $failures[] = sprintf("Gate::allows() checks the ability '%s', but no such permission exists, so it can never be granted. Add the permission, or fix the ability name.", $unknown);
+            $failures[] = sprintf("The code checks the ability '%s', but no such permission exists, so it can never be granted. Add the permission, or fix the ability name.", $unknown);
         }
 
         sort($failures);

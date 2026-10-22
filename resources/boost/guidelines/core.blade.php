@@ -14,6 +14,8 @@ Rules:
 
 - Use them inside an ordinary `arch()` chain. There is no separate DSL. The one
   exception is `toMatchGateAbilities`, which takes a list of permission names.
+- Give each verb its own `arch()` call: Pest applies `->extending(...)` and
+  similar selectors only to the first verb in a chain.
 - When you add a notification, mailable, job, model, controller or form request, add or
   extend the `arch()` test that covers it rather than leaving the new class
   unasserted.

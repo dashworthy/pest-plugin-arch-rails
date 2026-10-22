@@ -24,7 +24,7 @@ describe('toAuthorizeWithGate', function () {
 
     it('rejects a request whose authorize() checks no permission', function () {
         expect(fn () => expect(UntypedRequest::class)->toAuthorizeWithGate()->ensureLazyExpectationIsVerified())
-            ->toThrow(AssertionFailedError::class, 'authorize() does not call Gate::allows()');
+            ->toThrow(AssertionFailedError::class, 'authorize() does not decide what it returns with a gate check');
     });
 
     it('rejects a request with no authorize() method', function () {

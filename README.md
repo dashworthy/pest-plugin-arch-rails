@@ -57,14 +57,23 @@ the failure at a useful line.
 
 ## Example
 
+Give each of this package's verbs its own `arch()` call. Pest applies a
+selector such as `->classes()->extending(...)` only to the first verb in a
+chain, so a second verb would run against every class in the namespace.
+
 ```php
 use Illuminate\Database\Eloquent\Model;
 
-arch('every model is safe and conventional')
+arch('every model guards mass assignment')
     ->expect('App')
     ->classes()
     ->extending(Model::class)
-    ->toGuardMassAssignment()
+    ->toGuardMassAssignment();
+
+arch('every model matches its table name')
+    ->expect('App')
+    ->classes()
+    ->extending(Model::class)
     ->toMatchTableName();
 ```
 

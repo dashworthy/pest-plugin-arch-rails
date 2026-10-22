@@ -24,7 +24,11 @@ use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Models\StarGuardedMo
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Models\TableAttributeLegacyModel;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Models\TableAttributeModel;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Models\Taggable;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Models\TagUser;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Models\ThrowingConstructorModel;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Models\ThrowingInitializerModel;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Models\TraitFillableModel;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Models\TraitUnguardedModel;
 use Dashworthy\PestPluginArchRails\Tests\Fixtures\Hardening\Models\UnguardedBase;
 use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\AssertionFailedError;
@@ -142,4 +146,22 @@ it('rejects a #[Table] attribute naming a custom table', function () {
 it('rejects a pivot whose table is the plural rather than Eloquent\'s singular derivation', function () {
     expect(fn () => expect(PluralPivotUser::class)->toMatchTableName()->ensureLazyExpectationIsVerified())
         ->toThrow(AssertionFailedError::class, "expected 'plural_pivot_user'");
+});
+
+it('runs trait initializers, catching one that unguards the model', function () {
+    expect(fn () => expect(TraitUnguardedModel::class)->toGuardMassAssignment())
+        ->toThrow(AssertionFailedError::class);
+});
+
+it('runs trait initializers, accepting one that merges a fillable allow-list', function () {
+    expect(TraitFillableModel::class)->toGuardMassAssignment();
+});
+
+it('reports a throwing trait initializer as a violation instead of crashing', function () {
+    expect(fn () => expect(ThrowingInitializerModel::class)->toGuardMassAssignment())
+        ->toThrow(AssertionFailedError::class, 'initializeThrowsOnInit');
+});
+
+it('treats a model using the AsPivot trait as a pivot with a singular table', function () {
+    expect(TagUser::class)->toMatchTableName();
 });

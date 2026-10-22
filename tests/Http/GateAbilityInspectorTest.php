@@ -17,7 +17,7 @@ it('reports a permission nothing checks', function () {
     $inspect = new GateAbilityInspector(gateFixtures());
 
     expect($inspect(['widgets_index', 'widgets_show', 'gadgets_index', 'widgets_destroy']))->toBe([
-        "Permission 'widgets_destroy' exists, but nothing checks it with Gate::allows(). Check it where it is needed, or remove the permission.",
+        "Permission 'widgets_destroy' exists, but nothing checks it. Check it where it is needed, or remove the permission.",
     ]);
 });
 
@@ -25,7 +25,7 @@ it('reports a checked ability no permission backs', function () {
     $inspect = new GateAbilityInspector(gateFixtures());
 
     expect($inspect(['widgets_index', 'widgets_show']))->toBe([
-        "Gate::allows() checks the ability 'gadgets_index', but no such permission exists, so it can never be granted. Add the permission, or fix the ability name.",
+        "The code checks the ability 'gadgets_index', but no such permission exists, so it can never be granted. Add the permission, or fix the ability name.",
     ]);
 });
 

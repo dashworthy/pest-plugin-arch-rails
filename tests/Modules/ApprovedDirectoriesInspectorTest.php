@@ -113,3 +113,16 @@ it('runs no closure for a class outside the directory it is keyed to', function 
 
     expect($inspect(objectDescription(IssueInvoice::class)))->toBeNull();
 });
+
+it('does not crash on a numeric approved directory name when looking for a case-insensitive match', function () {
+    $inspector = new ApprovedDirectoriesInspector(['2024', 'actions'], 'Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\*\*');
+
+    expect($inspector(objectDescription(IssueInvoice::class)))->toContain("differs only in case from approved 'actions'")
+        ->and($inspector(objectDescription(InvoiceGizmo::class)))->toContain('Use one of: 2024, actions.');
+});
+
+it('approves a directory keyed to null for any class', function () {
+    $inspector = new ApprovedDirectoriesInspector(['Actions' => null], 'Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\*\*');
+
+    expect($inspector(objectDescription(InvoiceTotals::class)))->toBeNull();
+});
