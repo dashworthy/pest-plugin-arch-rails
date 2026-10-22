@@ -8,6 +8,6 @@ parameters:
     # read in argument position. Neither is expressible, so the file is kept to
     # bare delegation and every predicate lives in an analysed class.
     excludePaths:
-        - src/Autoload.php
+        - src/*/Autoload.php
 
     reportUnmatchedIgnoredErrors: true

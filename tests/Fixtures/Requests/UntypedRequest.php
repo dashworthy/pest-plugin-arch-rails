@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashworthy\PestPluginArchIdioms\Tests\Fixtures\Requests;
+namespace Dashworthy\PestPluginArchRails\Tests\Fixtures\Requests;
 
 class UntypedRequest
 {

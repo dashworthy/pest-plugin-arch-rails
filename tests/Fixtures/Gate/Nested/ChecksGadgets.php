@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashworthy\PestPluginArchIdioms\Tests\Fixtures\Gate\Nested;
+namespace Dashworthy\PestPluginArchRails\Tests\Fixtures\Gate\Nested;
 
 use Illuminate\Support\Facades\Gate;
 

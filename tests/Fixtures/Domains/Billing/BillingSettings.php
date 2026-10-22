@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashworthy\PestPluginArchIdioms\Tests\Fixtures\Domains\Billing;
+namespace Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Billing;
 
 class BillingSettings
 {

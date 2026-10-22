@@ -1,10 +1,16 @@
-## Framework idiom expectations
+## Architecture rules
 
-This project installs `dashworthy/pest-plugin-arch-idioms`, which registers eleven
-Pest expectations: `toBeQueued`, `toBeQueuedAfterCommit`, `toBeSync`,
-`toMatchTableName`, `toGuardMassAssignment`, `toDeclareNotificationChannels`,
-`toUseMarkdownMailTemplates`, `toAuthorizeWithGate`, `toMatchGateAbilities`,
-`toUseApprovedDirectories`, and `toUseDirectorySuffixes`.
+This project installs `dashworthy/pest-plugin-arch-rails`, which registers twelve
+Pest expectations, grouped by area:
+
+- Messaging: `toBeQueued`, `toBeQueuedAfterCommit`, `toBeSync`,
+  `toDeclareNotificationChannels`, `toUseMarkdownMailTemplates`
+- Models: `toMatchTableName`, `toGuardMassAssignment`
+- Http: `toAuthorizeWithGate`, `toMatchGateAbilities`
+- Modules: `toUseApprovedDirectories`, `toUseDirectorySuffixes`
+- Coverage: `toHaveTests`
+
+Rules:
 
 - Use them inside an ordinary `arch()` chain. There is no separate DSL. The one
   exception is `toMatchGateAbilities`, which takes a list of permission names.
@@ -21,4 +27,7 @@ Pest expectations: `toBeQueued`, `toBeQueuedAfterCommit`, `toBeSync`,
   with `->ignoring(...)` until they agree.
 - Where a `toUseDirectorySuffixes()` rule names a directory's suffix, end every
   new class in that directory with it. Rename the class rather than exempting
+  it.
+- When `toHaveTests()` fails, it names the exact test path to create. Create
+  the test at that path. Do not add the class to the `$exempt` list to silence
   it.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Dashworthy\PestPluginArchIdioms\Tests\Fixtures\Mail;
+namespace Dashworthy\PestPluginArchRails\Tests\Fixtures\Mail;
 
 use Illuminate\Mail\Mailables\Content;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Dashworthy\PestPluginArchIdioms\Tests\Fixtures\Support;
+namespace Dashworthy\PestPluginArchRails\Tests\Fixtures\Support;
 
 final class AlwaysFails
 {

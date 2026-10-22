@@ -1,8 +1,8 @@
 <?php
 
-namespace Dashworthy\PestPluginArchIdioms\Tests\Fixtures\Domains\Billing\Invoices\Actions;
+namespace Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Billing\Invoices\Actions;
 
-use Dashworthy\PestPluginArchIdioms\Tests\Fixtures\Domains\Action;
+use Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Action;
 
 class IssueInvoice implements Action
 {

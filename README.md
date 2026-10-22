@@ -1,39 +1,53 @@
-# pest-plugin-arch-idioms
+![pest-plugin-arch-rails — Pest arch rules that keep Laravel code on the rails.](art/banner.svg)
 
-Framework-idiom architecture expectations for Pest, registered directly onto
-`pest-plugin-arch`. No DSL, no selector grammar, no reporting layer of its own —
-every verb composes with `arch()` chains you already write.
+# pest-plugin-arch-rails
+
+Architecture rules for Laravel, written as Pest expectations. They plug straight
+into `pest-plugin-arch`: no DSL, no selector grammar, no reporting layer of its
+own. Every verb composes with the `arch()` chains you already write.
 
 ## Install
 
 ```bash
-composer require --dev dashworthy/pest-plugin-arch-idioms
+composer require --dev dashworthy/pest-plugin-arch-rails
 ```
+
+The expectations register themselves through Composer's `autoload.files`. There
+is nothing to publish and no service provider.
 
 ## Verbs
 
-| Verb | Passes when |
-|---|---|
-| `toBeQueued()` | the class implements `ShouldQueue` (or `ShouldQueueAfterCommit`, which extends it) |
-| `toBeQueuedAfterCommit()` | the class implements `ShouldQueueAfterCommit` specifically |
-| `toBeSync()` | the class implements neither — a positive assertion that dispatch is deliberately synchronous |
-| `toMatchTableName()` | an Eloquent model resolves the table its class name implies |
-| `toGuardMassAssignment()` | a model declares `$fillable` or `$guarded`, or relies on the fully guarded default |
-| `toDeclareNotificationChannels()` | `via()` exists and returns a non-empty channel list |
-| `toUseMarkdownMailTemplates()` | `content()` names a markdown template rather than a plain view |
-| `toAuthorizeWithGate($expectedAbility)` | `authorize()` checks `Gate::allows()` with an ability name — the one `$expectedAbility` derives from the class name, when given |
-| `toUseDirectorySuffixes($suffixes, $beneath)` | a class in a module's directory, however deeply nested, ends in the suffix that directory calls for |
-| `toMatchGateAbilities($directories, $alsoChecked)` | (on a list of permission names) every permission is checked by some `Gate::allows()`, and every checked ability is a permission |
+The package is organised by area. Each area lives in its own directory under
+`src/` and registers its own verbs.
+
+| Area | Verb | Passes when |
+|---|---|---|
+| Messaging | `toBeQueued()` | the class implements `ShouldQueue` (or `ShouldQueueAfterCommit`, which extends it) |
+| Messaging | `toBeQueuedAfterCommit()` | the class implements `ShouldQueueAfterCommit` specifically |
+| Messaging | `toBeSync()` | the class implements neither: dispatch is deliberately synchronous |
+| Messaging | `toDeclareNotificationChannels()` | `via()` exists and returns a non-empty channel list |
+| Messaging | `toUseMarkdownMailTemplates()` | `content()` names a markdown template rather than a plain view |
+| Models | `toMatchTableName()` | an Eloquent model resolves the table its class name implies |
+| Models | `toGuardMassAssignment()` | a model declares `$fillable` or `$guarded`, or relies on the fully guarded default |
+| Http | `toAuthorizeWithGate($expectedAbility)` | `authorize()` checks `Gate::allows()` with an ability name, the one `$expectedAbility` derives from the class name when given |
+| Http | `toMatchGateAbilities($directories, $alsoChecked)` | (on a list of permission names) every permission is checked by some `Gate::allows()`, and every checked ability is a permission |
+| Modules | `toUseApprovedDirectories($directories, $beneath)` | every class in a module sits in an approved directory, and is the type that directory names |
+| Modules | `toUseDirectorySuffixes($suffixes, $beneath)` | a class in a module's directory, however deeply nested, ends in the suffix that directory calls for |
+| Coverage | `toHaveTests($map, $suffix, $skip, $exempt)` | every class under a mapped source directory has a test file at the mirrored position |
 
 `toMatchGateAbilities()` is the odd one out: it is an ordinary expectation, not an
 arch one. Its subject is the list of permission names rather than a selection of
 classes, so it reports every mismatch in one run.
 
+`src/Core` holds no verbs. It is the shared base the areas build on: `Rule`
+turns an inspector (a class that returns a failure message, or null) into an arch
+expectation whose message can name the offending value, and `LineFinder` points
+the failure at a useful line.
+
 ## Usage
 
 Each verb is an ordinary arch expectation. Point a selector at the Laravel base
-class that defines the layer, and the verb checks every class that extends it —
-no fixture classes to write.
+class that defines the layer, and the verb checks every class that extends it.
 
 ### Notifications are queued and declare their channels
 
@@ -191,6 +205,97 @@ It checks only the directories it lists, and a class nested deeper inside one
 is held to the same suffix. Which directories may exist is left to
 `toUseApprovedDirectories()`.
 
+### Every class has a mirrored test
+
+The verb takes a whole **layer** — every class beneath a source root — and
+requires each to have a test at the mirrored position. It does not single out a
+kind of class: an action, a model, and a data object under the root are all
+subject to it equally. There is no "Actions directory" to point at; you map the
+root, and every class below it is covered.
+
+Point it at a namespace, and the map mirrors each matched class into a test root
+at the same relative path. A class at
+`App\Domains\Platform\Billing\Actions\PublishPlanVersion` requires a test at
+`tests/Unit/Domains/Platform/Billing/Actions/PublishPlanVersionTest.php`, and the
+failure names that exact path until it exists:
+
+```php
+arch('every domain class has a mirrored test')
+    ->expect('App\Domains')
+    ->toHaveTests([
+        app_path('Domains') => base_path('tests/Unit/Domains'),
+    ]);
+```
+
+#### Sending one layer to a different suite
+
+The map is an argument, not a config file, and the **longest matching source
+root wins**. That lets one layer inside the tree mirror somewhere else without
+restating its parent — here, controllers run through the framework, so they
+belong in the feature suite while everything else stays in the unit suite:
+
+```php
+arch('every domain class has a mirrored test')
+    ->expect('App\Domains')
+    ->toHaveTests([
+        app_path('Domains') => base_path('tests/Unit/Domains'),
+        app_path('Domains/Platform/Billing/Controllers')
+            => base_path('tests/Feature/Domains/Platform/Billing/Controllers'),
+    ]);
+```
+
+A controller matches both roots; the longer one wins, so its test is required
+under `tests/Feature/Domains/...` and not in the unit suite. A single global
+config listing roots could not express "this subtree, but not its parent".
+
+#### Signature
+
+```php
+toHaveTests(
+    array $map,
+    string $suffix = 'Test',
+    ?array $skip = null,
+    array $exempt = [],
+)
+```
+
+| Parameter | Meaning |
+|---|---|
+| `$map` | `source directory => test directory`, or `=> [several]`. Any one candidate satisfies the class. Longest matching source root wins, so a subtree can point at a different test root without restating its parent. |
+| `$suffix` | Appended to the source basename to form the test basename. |
+| `$skip` | Structural kinds needing no test: `'abstract'`, `'interface'`, `'trait'`, `'enum'`. `null` means all four. Pass a shorter list to demand tests for a kind; pass `[]` to demand them for all. |
+| `$exempt` | FQCNs whose **descendants and implementors** are exempt. Naming a class here does not exempt that class itself. |
+
+Directories rather than namespaces, because a Pest test file declares no class:
+`class_exists()` is false for every test in a Pest suite, so whether a test exists
+is a question about a file.
+
+#### Failures
+
+```
+Expecting a test for this class, but it has no corresponding test. Create
+/app/tests/Unit/Domains/Users/CreateUserActionTest.php. Or, if it is genuinely
+untestable, name a base class in the exempt list, or exclude it with ->ignoring(...).
+
+at app/Domains/Users/CreateUserAction.php:9
+```
+
+One violation is reported per run. `Pest\Arch\Blueprint::targeted()` throws inside
+its own loop, so a convention failing across forty classes reports the first and
+you rerun for the next. Recovering aggregation would mean replacing `Blueprint`,
+which this package deliberately does not do.
+
+#### Deliberately not included
+
+- **The reverse direction** — "this test file covers a class that no longer
+  exists". Its subject is a Pest test file, and a Pest test file declares no
+  class, so it never becomes an object arch can reason about at all.
+- **Symlink detection beneath a test root.** It existed to protect a walk of the
+  test tree, and there is no such walk in the forward direction. Roots reached
+  through a symlink are still resolved, so a package symlinked into `vendor/`
+  compares equal to the same directory named literally.
+- **A config file.** Every parameter is an argument at the call site.
+
 ### Asserting a deliberate decision instead of ignoring it
 
 A class caught by a selector that is *meant* to break the rule can be carved out
@@ -223,7 +328,13 @@ These are arch expectations, so they inherit arch's behaviour:
 - **One violation per run.** A rule failing across forty classes reports the
   first and stops.
 - **`@pest-arch-ignore-line` suppresses any of them.** Police its use with an
-  arch test of your own if that matters to you.
+  arch test of your own if that matters to you:
+
+  ```php
+  arch('no source file suppresses an architecture rule')
+      ->expect('App')
+      ->not->toUse('@pest-arch-ignore-line');
+  ```
 - **An empty layer passes.** A typo'd namespace turns a rule green. Assert the
   layer is non-empty separately if you need that guard.
 
@@ -242,10 +353,7 @@ the check. That is the general form of the `#[Fillable]` caveat below.
   `newInstanceWithoutConstructor()`, but Eloquent only resolves the attribute
   forms inside `initializeGuardsAttributes()`, which runs during construction.
   With the constructor skipped, an attribute-declared list is invisible and
-  the model is reported as unguarded. This repository's
-  `app/Domains/Shared/Teams/Models/Membership.php` declares
-  `#[Fillable(['team_id', 'user_id', 'role'])]` and is wrongly flagged by this
-  verb. Exclude any model using the attribute form with `->ignoring(...)`.
+  the model is reported as unguarded. Exclude any model using the attribute form with `->ignoring(...)`.
 - A model that `extends Pivot` inherits `protected $guarded = []` from
   `Illuminate\Database\Eloquent\Relations\Pivot`, so pivots are reported as
   unguarded unless they declare `$fillable` in property form.
@@ -300,11 +408,17 @@ the check. That is the general form of the `#[Fillable]` caveat below.
   which includes Blade views; it skips any path containing a `vendor`
   directory.
 
+### `toHaveTests()`
+
+- There is no reverse direction: nothing asserts that a test file still covers
+  a class that exists.
+
 ## Editor and agent support
 
-The package ships a Laravel Boost skill and guideline. Boost discovers them at
-`resources/boost/skills/` and `resources/boost/guidelines/` for every installed
-package, so a consuming project picks them up by running:
+The package ships a Laravel Boost skill, `enforcing-arch-rails`, and a
+guideline. Boost discovers them at `resources/boost/skills/` and
+`resources/boost/guidelines/` for every installed package, so a consuming
+project picks them up by running:
 
 ```bash
 php artisan boost:update
@@ -312,3 +426,7 @@ php artisan boost:update
 
 The skill explains which verb covers which case and how to scope or exempt one;
 the guideline is the short form injected into the project's AI guidelines.
+
+## Licence
+
+MIT.

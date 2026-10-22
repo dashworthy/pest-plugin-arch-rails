@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashworthy\PestPluginArchIdioms\Tests\Fixtures\Domains\Billing\Invoices;
+namespace Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains\Billing\Invoices;
 
 class InvoiceHelper
 {

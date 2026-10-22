@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashworthy\PestPluginArchIdioms\Tests\Fixtures\Domains;
+namespace Dashworthy\PestPluginArchRails\Tests\Fixtures\Domains;
 
 interface Action
 {

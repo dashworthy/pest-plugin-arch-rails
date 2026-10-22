@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Dashworthy\PestPluginArchIdioms\Tests\Fixtures\Notifications;
+namespace Dashworthy\PestPluginArchRails\Tests\Fixtures\Notifications;
 
 final class EmptyChannelsNotification
 {

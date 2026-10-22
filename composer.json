@@ -1,6 +1,6 @@
 {
-    "name": "dashworthy/pest-plugin-arch-idioms",
-    "description": "Framework-idiom architecture expectations for Pest.",
+    "name": "dashworthy/pest-plugin-arch-rails",
+    "description": "Architecture rules for Laravel, written as Pest expectations.",
     "keywords": [
         "php",
         "pest",
@@ -34,15 +34,19 @@
     },
     "autoload": {
         "psr-4": {
-            "Dashworthy\\PestPluginArchIdioms\\": "src/"
+            "Dashworthy\\PestPluginArchRails\\": "src/"
         },
         "files": [
-            "src/Autoload.php"
+            "src/Coverage/Autoload.php",
+            "src/Http/Autoload.php",
+            "src/Messaging/Autoload.php",
+            "src/Models/Autoload.php",
+            "src/Modules/Autoload.php"
         ]
     },
     "autoload-dev": {
         "psr-4": {
-            "Dashworthy\\PestPluginArchIdioms\\Tests\\": "tests/"
+            "Dashworthy\\PestPluginArchRails\\Tests\\": "tests/"
         }
     },
     "minimum-stability": "dev",

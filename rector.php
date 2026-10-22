@@ -13,7 +13,7 @@ use Rector\Set\ValueObject\SetList;
  | test — an abstract method on a trait, an empty final class — and a refactor
  | that "improves" one silently changes what the suite asserts.
  |
- | src/Autoload.php is skipped. ClosureToArrowFunctionRector rewrites the
+ | Every Autoload.php under src is skipped. ClosureToArrowFunctionRector rewrites the
  | registration into a single arrow expression, and that closure's reflected
  | signature is load bearing: Pest\Expectation::__call matches its return type
  | string exactly to choose the direct-invocation branch. The file is twelve
@@ -25,7 +25,7 @@ return RectorConfig::configure()
         __DIR__.'/src',
     ])
     ->withSkip([
-        __DIR__.'/src/Autoload.php',
+        __DIR__.'/src/*/Autoload.php',
     ])
     ->withPhpSets(php84: true)
     ->withSets([
