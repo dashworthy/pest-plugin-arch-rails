@@ -50,6 +50,14 @@ final readonly class CoverageMap
         $normalised = [];
 
         foreach ($map as $source => $tests) {
+            if ($tests === []) {
+                throw new InvalidArgumentException(sprintf(
+                    'The coverage map gives the source root [%s] no test directory, so no class under it '.
+                    'could ever pass. Map it to one or more test directories.',
+                    $source,
+                ));
+            }
+
             $normalised[self::normalise($source)] = array_map(
                 self::normalise(...),
                 is_array($tests) ? array_values($tests) : [$tests],
@@ -115,10 +123,43 @@ final readonly class CoverageMap
     /**
      * realpath() where the path exists, so a root reached through a symlink
      * compares equal to the same directory named literally. Paths that do not
-     * exist are left alone: a candidate test file is not supposed to be there yet.
+     * exist are resolved lexically: a candidate test file is not supposed to be
+     * there yet. Backslashes become forward slashes so Windows paths compare.
      */
     private static function normalise(string $path): string
     {
-        return rtrim(realpath($path) ?: $path, '/');
+        $real = realpath($path);
+
+        return rtrim(str_replace('\\', '/', $real !== false ? $real : self::resolveLexically($path)), '/');
+    }
+
+    /**
+     * Collapses '.', '..' and repeated separators without touching disk.
+     */
+    private static function resolveLexically(string $path): string
+    {
+        $path = str_replace('\\', '/', $path);
+        $absolute = str_starts_with($path, '/');
+        $segments = [];
+
+        foreach (explode('/', $path) as $segment) {
+            if ($segment === '' || $segment === '.') {
+                continue;
+            }
+
+            if ($segment === '..' && $segments !== [] && end($segments) !== '..') {
+                array_pop($segments);
+
+                continue;
+            }
+
+            if ($segment === '..' && $absolute) {
+                continue;
+            }
+
+            $segments[] = $segment;
+        }
+
+        return ($absolute ? '/' : '').implode('/', $segments);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Dashworthy\PestPluginArchRails\Coverage;
 
+use InvalidArgumentException;
 use PHPUnit\Architecture\Elements\ObjectDescription;
 use PHPUnit\Architecture\Enums\ObjectType;
 
@@ -29,7 +30,17 @@ final readonly class CoverageInspector
         private CoverageMap $coverage,
         private array $skip = self::DEFAULT_SKIP,
         private array $exempt = [],
-    ) {}
+    ) {
+        $unknown = array_diff($skip, self::DEFAULT_SKIP);
+
+        if ($unknown !== []) {
+            throw new InvalidArgumentException(sprintf(
+                'Unknown kind(s) [%s] in the coverage skip list. Valid kinds are: %s.',
+                implode(', ', $unknown),
+                implode(', ', self::DEFAULT_SKIP),
+            ));
+        }
+    }
 
     /**
      * The failure message, or null when the object satisfies the rule.
@@ -48,7 +59,7 @@ final readonly class CoverageInspector
         }
 
         foreach ($candidates as $candidate) {
-            if (is_file($candidate)) {
+            if ($this->fileExistsWithExactCase($candidate)) {
                 return null;
             }
         }
@@ -86,9 +97,31 @@ final readonly class CoverageInspector
      * isSubclassOf() covers parents and implemented interfaces, and is false for
      * the class itself — which is the point. The list names ancestors, so a class
      * must earn its exemption on its own account rather than by being named.
+     *
+     * An entry naming no loadable class or interface exempts nothing, rather
+     * than crashing the run with a ReflectionException.
      */
     private function descendsFromExempt(ObjectDescription $object): bool
     {
-        return array_any($this->exempt, fn (string $ancestor): bool => $object->reflectionClass->isSubclassOf($ancestor));
+        return array_any(
+            $this->exempt,
+            fn (string $ancestor): bool => (class_exists($ancestor) || interface_exists($ancestor))
+                && $object->reflectionClass->isSubclassOf($ancestor),
+        );
+    }
+
+    /**
+     * is_file() alone accepts caseactionTest.php for CaseActionTest.php on a
+     * case-insensitive filesystem, so the on-disk basename is compared too.
+     */
+    private function fileExistsWithExactCase(string $path): bool
+    {
+        if (! is_file($path)) {
+            return false;
+        }
+
+        $entries = scandir(dirname($path));
+
+        return $entries !== false && in_array(basename($path), $entries, true);
     }
 }

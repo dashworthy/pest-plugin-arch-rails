@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Dashworthy\PestPluginArchRails\Modules;
 
+use InvalidArgumentException;
 use PHPUnit\Architecture\Elements\ObjectDescription;
 
 /**
@@ -17,12 +18,33 @@ final readonly class DirectorySuffixesInspector
 {
     private ModulePattern $modules;
 
+    /** @var array<string, string> */
+    private array $suffixes;
+
     /**
-     * @param  array<string, string>  $suffixes  The suffix each directory's classes end in, keyed by directory name.
+     * @param  array<mixed>  $suffixes  The suffix each directory's classes end in, keyed by directory name.
      * @param  string  $beneath  The parent namespace, * matching any one segment.
      */
-    public function __construct(private array $suffixes, string $beneath)
+    public function __construct(array $suffixes, string $beneath)
     {
+        $validated = [];
+
+        foreach ($suffixes as $directory => $suffix) {
+            if (! is_string($directory) || $directory === '') {
+                throw new InvalidArgumentException(sprintf('Each suffix must be keyed by its directory name, but %s is not a directory name.', var_export($directory, true)));
+            }
+
+            if (! is_string($suffix) || $suffix === '') {
+                throw new InvalidArgumentException(sprintf('The suffix for the %s directory must be a non-empty string; an empty suffix would pass every class.', $directory));
+            }
+
+            if (str_contains($suffix, '\\')) {
+                throw new InvalidArgumentException(sprintf("The suffix '%s' for the %s directory contains a namespace separator, but suffixes are matched against the short class name only.", $suffix, $directory));
+            }
+            $validated[$directory] = $suffix;
+        }
+
+        $this->suffixes = $validated;
         $this->modules = new ModulePattern($beneath);
     }
 
@@ -38,8 +60,9 @@ final readonly class DirectorySuffixesInspector
         }
 
         $suffix = $this->suffixes[$directory];
+        $name = substr((string) strrchr('\\'.$object->name, '\\'), 1);
 
-        if (str_ends_with($object->name, $suffix)) {
+        if (str_ends_with($name, $suffix)) {
             return null;
         }
 
@@ -47,7 +70,7 @@ final readonly class DirectorySuffixesInspector
             "Expecting every class in the %s directory to end in '%s', but %s does not. Rename it to end in '%s', or move it to the directory for what it is.",
             $directory,
             $suffix,
-            substr((string) strrchr('\\'.$object->name, '\\'), 1),
+            $name,
             $suffix,
         );
     }

@@ -41,11 +41,12 @@ final readonly class GateAuthorizationInspector
                 .'Add one that returns Gate::allows() with the permission name.';
         }
 
-        $abilities = GateAbilities::inMethod($reflection->getMethod('authorize'));
+        $abilities = GateAbilities::decidingMethod($reflection->getMethod('authorize'));
 
-        if ($abilities === []) {
+        if ($abilities === null) {
             return 'Expecting the request to authorize through a permission, but authorize() does not call '
-                .'Gate::allows() with a permission name. Add the check.';
+                .'Gate::allows() with a permission name in a way that decides what it returns. Return the check '
+                .'(negated or joined with && if needed), or call Gate::authorize() first.';
         }
 
         $expected = $this->expectedAbility instanceof Closure ? ($this->expectedAbility)($object->name) : null;

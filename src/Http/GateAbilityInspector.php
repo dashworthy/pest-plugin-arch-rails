@@ -28,11 +28,17 @@ final readonly class GateAbilityInspector
      */
     public function __invoke(array $permissions): array
     {
+        foreach ($this->directories as $directory) {
+            if (! is_dir($directory)) {
+                return [sprintf("The directory '%s' does not exist, so no abilities could be read from it. Fix the path.", $directory)];
+            }
+        }
+
         $inSource = GateAbilities::inDirectories($this->directories);
         $checked = array_unique([...$inSource, ...$this->alsoChecked]);
         $failures = [];
 
-        foreach (array_diff($permissions, $checked) as $unused) {
+        foreach (array_diff(array_unique($permissions), $checked) as $unused) {
             $failures[] = sprintf("Permission '%s' exists, but nothing checks it with Gate::allows(). Check it where it is needed, or remove the permission.", $unused);
         }
 

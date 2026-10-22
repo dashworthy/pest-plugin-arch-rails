@@ -11,7 +11,6 @@ use Pest\Arch\Contracts\ArchExpectation;
 use Pest\Arch\Exceptions\ArchExpectationFailedException;
 use Pest\Arch\Options\LayerOptions;
 use Pest\Arch\SingleArchExpectation;
-use Pest\Arch\Support\FileLineFinder;
 use Pest\Arch\ValueObjects\Targets;
 use Pest\Arch\ValueObjects\Violation;
 use Pest\Expectation;
@@ -48,9 +47,7 @@ final class Rule
             Dependencies::fromExpectationInput([]),
         );
 
-        $lineFinder = $line ?? FileLineFinder::where(
-            fn (string $candidate): bool => str_contains($candidate, 'class'),
-        );
+        $lineFinder = $line ?? LineFinder::declaration();
 
         return SingleArchExpectation::fromExpectation(
             $expectation,
@@ -91,7 +88,9 @@ final class Rule
 
                 return $detail === null;
             },
-            fn (Violation $violation, ?string $detail): string => (string) $detail,
+            fn (Violation $violation, ?string $detail): string => $detail !== null && $detail !== ''
+                ? $detail
+                : 'Expecting this class to satisfy the rule, but it does not.',
             $line,
         );
     }

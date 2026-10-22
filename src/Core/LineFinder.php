@@ -11,11 +11,26 @@ use Pest\Arch\Support\FileLineFinder;
  */
 final class LineFinder
 {
+    /** A line declaring a class, interface, trait or enum, not merely mentioning one. */
+    private const string DECLARATION = '/^\s*((final|abstract|readonly)\s+)*(class|interface|trait|enum)\s/';
+
     /**
-     * The first line containing the needle, falling back to the line declaring the class.
+     * The line declaring the class, interface, trait or enum.
      *
      * FileLineFinder::where() returns 0 when nothing in the file matches, which points a violation at line 0. This
      * tries the needle (usually a method signature) first and, when the method is missing, falls back to the class.
+     *
+     * @return callable(string): int
+     */
+    public static function declaration(): callable
+    {
+        return FileLineFinder::where(
+            fn (string $candidate): bool => preg_match(self::DECLARATION, $candidate) === 1,
+        );
+    }
+
+    /**
+     * The first line containing the needle, falling back to the declaring line.
      *
      * @return callable(string): int
      */
@@ -26,7 +41,7 @@ final class LineFinder
 
             return $line !== 0
                 ? $line
-                : FileLineFinder::where(fn (string $candidate): bool => str_contains($candidate, 'class'))($path);
+                : self::declaration()($path);
         };
     }
 }

@@ -1,12 +1,12 @@
 ---
 name: enforcing-arch-rails
-description: Use when adding or changing a queued job, notification, mailable, Eloquent model, form request, permission, module directory, or an arch test that demands test coverage, in a project that has dashworthy/pest-plugin-arch-rails installed. The package ships twelve Pest expectations that enforce dispatch, table-naming, mass-assignment, channel, mail-template, authorization, directory and test-coverage conventions; this skill says which verb covers which case, how to read a failure, and how to scope or exempt a class.
+description: Use when adding or changing a queued job, notification, mailable, Eloquent model, form request, controller, permission, module directory, or an arch test that demands test coverage, in a project that has dashworthy/pest-plugin-arch-rails installed. The package ships fourteen Pest expectations that enforce dispatch, table-naming, mass-assignment, channel, mail-template, authorization, form-request, API-resource, directory and test-coverage conventions; this skill says which verb covers which case, how to read a failure, and how to scope or exempt a class.
 ---
 
 # Enforcing architecture rules with pest-plugin-arch-rails
 
 This project has `dashworthy/pest-plugin-arch-rails` installed. It registers
-twelve expectations onto Pest's architecture plugin. They compose with any
+fourteen expectations onto Pest's architecture plugin. They compose with any
 `arch()` chain; there is no separate DSL. `toMatchGateAbilities()` is the
 exception: its subject is the list of permission names, not a selection of
 classes.
@@ -22,6 +22,8 @@ classes.
 | a mailable | `toUseMarkdownMailTemplates()` |
 | an Eloquent model | `toMatchTableName()` and `toGuardMassAssignment()` |
 | a form request | `toAuthorizeWithGate()` |
+| a controller | `toUseFormRequests()` |
+| an API controller | `toReturnJsonResources()` |
 | a permission, or a new `Gate::allows()` check | `expect($permissionNames)->toMatchGateAbilities($directories)` |
 | a class in a module | `toUseApprovedDirectories($directories, beneath: $modules)` |
 | a class in a module directory with a naming suffix | `toUseDirectorySuffixes($suffixes, beneath: $modules)` |
@@ -113,18 +115,17 @@ tests/Unit/Domains/Users/CreateUserActionTest.php. ...
 source root"*, is about the `arch()` test, not the class: widen the map, or
 narrow the layer with `->ignoring(...)`.
 
-## Where the verbs are blind
+## What the verbs cannot see
 
-- `toDeclareNotificationChannels()` and `toUseMarkdownMailTemplates()` read the
-  class's own file, so a `via()` or `content()` from a **trait** is reported as
-  missing, and a second class in the same file can satisfy the check for its
-  neighbour. Keep one class per file and declare these methods on the class.
-- `toGuardMassAssignment()` builds the model with
-  `newInstanceWithoutConstructor()`, so a model declaring `#[Fillable([...])]`
-  or `#[Guarded([...])]` as a PHP attribute is wrongly reported as unguarded.
-  Exclude any such model with `->ignoring(...)`.
-- `toAuthorizeWithGate()` and `toMatchGateAbilities()` read source text for
-  `Gate::allows('...')` with a string literal. `Gate::denies()`,
-  `$user->can()`, a policy, `can:` middleware, or an ability held in a variable
-  is invisible. Pass abilities checked those ways to `toMatchGateAbilities()` as
-  `$alsoChecked` rather than deleting the permission.
+- A `via()` that returns a variable or computed list is trusted: its value is
+  not known until it runs.
+- An ability held in a variable or constant is invisible to the gate verbs.
+  Pass it to `toMatchGateAbilities()` as `$alsoChecked` rather than deleting
+  the permission.
+- Validation inside a closure within a controller action is not read by
+  `toUseFormRequests()`.
+- Configuration mistakes in a rule (a `**` wildcard, an empty suffix, an
+  unknown `$skip` kind, a directory type that does not exist) throw when the
+  rule is built. Fix the rule; do not wrap it.
+
+Each area's full behaviour is in the package's `docs/` directory.

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 use Dashworthy\PestPluginArchRails\Core\LineFinder;
 use Dashworthy\PestPluginArchRails\Core\Rule;
+use Dashworthy\PestPluginArchRails\Http\FormRequestInspector;
 use Dashworthy\PestPluginArchRails\Http\GateAbilityInspector;
 use Dashworthy\PestPluginArchRails\Http\GateAuthorizationInspector;
+use Dashworthy\PestPluginArchRails\Http\JsonResourceInspector;
 use Pest\Arch\Contracts\ArchExpectation;
 use Pest\Expectation;
 use PHPUnit\Framework\Assert;
@@ -41,4 +43,19 @@ expect()->extend('toMatchGateAbilities', function (array $directories, array $al
     );
 
     return $this;
+});
+
+/*
+ | Every public action validates through a form request: none takes a plain
+ | Illuminate\Http\Request or validates inline.
+ */
+expect()->extend('toUseFormRequests', function (): ArchExpectation {
+    return Rule::fromInspector($this, new FormRequestInspector);
+});
+
+/*
+ | Every public action declares a JsonResource subclass as its return type.
+ */
+expect()->extend('toReturnJsonResources', function (): ArchExpectation {
+    return Rule::fromInspector($this, new JsonResourceInspector);
 });
